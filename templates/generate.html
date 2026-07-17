@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate - Seating Arrangement</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
+        .navbar { background:linear-gradient(135deg,#1a365d,#2b6cb0); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; box-shadow:0 2px 12px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+        .brand { color:white; font-size:1.1rem; font-weight:700; }
+        .navbar nav { display:flex; align-items:center; gap:4px; }
+        .navbar nav a { color:rgba(255,255,255,0.8); text-decoration:none; padding:7px 13px; border-radius:6px; font-size:0.85rem; transition:all 0.2s; }
+        .navbar nav a:hover { background:rgba(255,255,255,0.15); color:white; }
+        .navbar nav a.active { background:rgba(255,255,255,0.22); color:white; font-weight:600; }
+        .navbar nav a.logout:hover { background:#e53e3e; color:white; }
+        .alert { padding:12px 20px; border-radius:8px; margin:16px 20px; font-size:0.9rem; }
+        .alert-success { background:#c6f6d5; color:#276749; border-left:4px solid #38a169; }
+        .alert-error   { background:#fed7d7; color:#c53030; border-left:4px solid #e53e3e; }
+        .page { max-width:1100px; margin:30px auto; padding:0 20px; }
+        .page-title { font-size:1.5rem; font-weight:700; color:#1a365d; margin-bottom:22px; border-left:4px solid #2b6cb0; padding-left:12px; }
+        .card { background:white; border-radius:12px; padding:24px; box-shadow:0 2px 10px rgba(0,0,0,0.07); margin-bottom:22px; }
+        .card h3 { color:#2b6cb0; font-size:1rem; font-weight:700; margin-bottom:18px; }
+        table { width:100%; border-collapse:collapse; }
+        thead th { background:#ebf4ff; color:#1a365d; text-align:left; padding:10px 16px; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; }
+        tbody td { padding:12px 16px; border-bottom:1px solid #f0f4f8; font-size:0.9rem; vertical-align:middle; }
+        tbody tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#f7faff; }
+        .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+        .badge-green  { background:#c6f6d5; color:#276749; }
+        .badge-red    { background:#fed7d7; color:#c53030; }
+        .btn-generate { width:100%; padding:16px; background:linear-gradient(135deg,#38a169,#276749); color:white; border:none; border-radius:10px; font-size:1.1rem; font-weight:700; cursor:pointer; margin-top:20px; transition:all 0.2s; letter-spacing:0.5px; }
+        .btn-generate:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(56,161,105,0.4); }
+        .warn-box { background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:0.88rem; color:#856404; margin-top:16px; }
+        .algo-steps { display:flex; flex-direction:column; gap:10px; }
+        .algo-step { display:flex; align-items:flex-start; gap:14px; padding:12px 16px; background:#f7faff; border-radius:8px; font-size:0.9rem; color:#2d3748; border-left:4px solid #2b6cb0; }
+        .algo-step .step-n { color:#2b6cb0; font-weight:700; font-size:1rem; flex-shrink:0; }
+        .indent-row td:first-child { padding-left:36px; color:#718096; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="brand">🎓 Seating Arrangement System</div>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/rooms">Rooms</a>
+        <a href="/branches">Branches</a>
+        <a href="/upload_students">Students</a>
+        <a href="/generate" class="active">Generate</a>
+        <a href="/view_chart">View Chart</a>
+        <a href="/logout" class="logout">Logout</a>
+    </nav>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {% if category=='success' %}✅{% else %}❌{% endif %} {{ message }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="page">
+    <div class="page-title">🚀 Generate Seating Plan</div>
+
+    <div class="card">
+        <h3>✅ Pre-Generation Checklist</h3>
+        <p style="color:#4a5568; font-size:0.88rem; margin-bottom:18px">
+            Check all items below. All must be ✅ Ready before generating.
+            This will <strong>overwrite</strong> any previous seating plan.
+        </p>
+        <table>
+            <thead>
+                <tr><th>Item</th><th>Count / Details</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>🏫 Rooms</strong></td>
+                    <td>{{ rooms|length }} rooms added</td>
+                    <td>{% if rooms|length > 0 %}<span class="badge badge-green">✅ Ready</span>{% else %}<span class="badge badge-red">❌ Add rooms first</span>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td><strong>📚 Branches</strong></td>
+                    <td>{{ branches|length }} branches added</td>
+                    <td>{% if branches|length > 0 %}<span class="badge badge-green">✅ Ready</span>{% else %}<span class="badge badge-red">❌ Add branches first</span>{% endif %}</td>
+                </tr>
+                {% for branch in branches %}
+                <tr class="indent-row">
+                    <td>↳ {{ branch.branch_name }}</td>
+                    <td>{{ branch.actual_students }} students</td>
+                    <td>{% if branch.actual_students > 0 %}<span class="badge badge-green">✅ Ready</span>{% else %}<span class="badge badge-red">❌ Upload students</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if rooms|length > 0 and branches|length > 0 %}
+        <form method="POST" onsubmit="return confirmGen()">
+            <button type="submit" class="btn-generate">
+                🚀 Generate Seating Plan Now
+            </button>
+        </form>
+        {% else %}
+        <div class="warn-box">
+            ⚠️ Please complete all steps before generating — add rooms and branches with students!
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>ℹ️ How the Algorithm Works</h3>
+        <div class="algo-steps">
+            <div class="algo-step"><span class="step-n">1</span>Branches are automatically split into 2 groups — Group A goes to odd columns, Group B goes to even columns</div>
+            <div class="algo-step"><span class="step-n">2</span>Students from each group are lined up branch by branch in order</div>
+            <div class="algo-step"><span class="step-n">3</span>Seats are filled room by room, row by row, column by column</div>
+            <div class="algo-step"><span class="step-n">4</span>Odd columns → Group A students &nbsp;|&nbsp; Even columns → Group B students</div>
+            <div class="algo-step"><span class="step-n">5</span>When one branch finishes → next branch in that group continues automatically</div>
+            <div class="algo-step"><span class="step-n">6</span>No two same-branch students sit beside or behind each other! ✅</div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmGen() {
+    return confirm('Generate new seating plan?\n\nWarning: Previous seating plan will be cleared!\n\nClick OK to continue.');
+}
+</script>
+</body>
+</html>

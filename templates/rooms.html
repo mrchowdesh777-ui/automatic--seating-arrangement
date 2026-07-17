@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooms - Seating Arrangement</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
+
+        /* NAVBAR */
+        .navbar { background:linear-gradient(135deg,#1a365d,#2b6cb0); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; box-shadow:0 2px 12px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+        .brand { color:white; font-size:1.1rem; font-weight:700; }
+        .navbar nav { display:flex; align-items:center; gap:4px; }
+        .navbar nav a { color:rgba(255,255,255,0.8); text-decoration:none; padding:7px 13px; border-radius:6px; font-size:0.85rem; transition:all 0.2s; }
+        .navbar nav a:hover { background:rgba(255,255,255,0.15); color:white; }
+        .navbar nav a.active { background:rgba(255,255,255,0.22); color:white; font-weight:600; }
+        .navbar nav a.logout { background:rgba(255,255,255,0.1); }
+        .navbar nav a.logout:hover { background:#e53e3e; color:white; }
+
+        /* ALERT */
+        .alert { padding:12px 20px; border-radius:8px; margin:16px 20px; font-size:0.9rem; }
+        .alert-success { background:#c6f6d5; color:#276749; border-left:4px solid #38a169; }
+        .alert-error   { background:#fed7d7; color:#c53030; border-left:4px solid #e53e3e; }
+
+        /* PAGE */
+        .page { max-width:1100px; margin:30px auto; padding:0 20px; }
+        .page-title { font-size:1.5rem; font-weight:700; color:#1a365d; margin-bottom:22px; border-left:4px solid #2b6cb0; padding-left:12px; }
+
+        /* CARD */
+        .card { background:white; border-radius:12px; padding:24px; box-shadow:0 2px 10px rgba(0,0,0,0.07); margin-bottom:22px; }
+        .card h3 { color:#2b6cb0; font-size:1rem; font-weight:700; margin-bottom:18px; }
+
+        /* FORM */
+        .form-row { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:14px; align-items:end; }
+        @media(max-width:700px){ .form-row { grid-template-columns:1fr; } }
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:0.82rem; font-weight:600; color:#4a5568; }
+        .form-group input { padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.92rem; color:#2d3748; transition:border-color 0.2s; }
+        .form-group input:focus { outline:none; border-color:#2b6cb0; box-shadow:0 0 0 3px rgba(43,108,176,0.1); }
+        .hint { font-size:0.8rem; color:#718096; margin-top:8px; }
+
+        /* BUTTONS */
+        .btn { padding:10px 20px; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-primary { background:#2b6cb0; color:white; width:100%; }
+        .btn-primary:hover { background:#1a4f8a; }
+        .btn-danger { background:#e53e3e; color:white; padding:6px 14px; font-size:0.8rem; border-radius:6px; border:none; cursor:pointer; }
+        .btn-danger:hover { background:#c53030; }
+
+        /* TABLE */
+        table { width:100%; border-collapse:collapse; }
+        thead th { background:#ebf4ff; color:#1a365d; text-align:left; padding:10px 16px; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; }
+        tbody td { padding:12px 16px; border-bottom:1px solid #f0f4f8; font-size:0.9rem; vertical-align:middle; }
+        tbody tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#f7faff; }
+
+        /* BADGE */
+        .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+        .badge-blue { background:#bee3f8; color:#1a365d; }
+
+        /* EMPTY STATE */
+        .empty-state { text-align:center; padding:40px 20px; color:#718096; }
+        .empty-state .empty-icon { font-size:3.5rem; margin-bottom:12px; }
+        .empty-state p { font-size:0.92rem; }
+
+        /* ROOM NUMBER BADGE */
+        .room-name { font-weight:700; color:#1a365d; font-size:0.95rem; }
+        .capacity-badge { background:#bee3f8; color:#1a365d; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="brand">🎓 Seating Arrangement System</div>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/rooms" class="active">Rooms</a>
+        <a href="/branches">Branches</a>
+        <a href="/upload_students">Students</a>
+        <a href="/generate">Generate</a>
+        <a href="/view_chart">View Chart</a>
+        <a href="/logout" class="logout">Logout</a>
+    </nav>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {% if category=='success' %}✅{% else %}❌{% endif %} {{ message }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="page">
+    <div class="page-title">🏫 Manage Rooms</div>
+
+    <!-- ADD ROOM CARD -->
+    <div class="card">
+        <h3>➕ Add New Room</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Room Name / Number</label>
+                    <input type="text" name="room_name" placeholder="e.g. Room 101, Lab A" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Rows</label>
+                    <input type="number" name="rows" placeholder="e.g. 6" min="1" max="20" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Columns</label>
+                    <input type="number" name="cols" placeholder="e.g. 8" min="1" max="20" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">➕ Add Room</button>
+                </div>
+            </div>
+        </form>
+        <p class="hint">💡 Capacity is calculated automatically: Rows × Columns = Total seats</p>
+    </div>
+
+    <!-- ALL ROOMS CARD -->
+    <div class="card">
+        <h3>📋 All Rooms
+            <span style="background:#ebf4ff;color:#2b6cb0;padding:3px 10px;border-radius:20px;font-size:0.8rem;margin-left:8px">
+                {{ rooms|length }} total
+            </span>
+        </h3>
+
+        {% if rooms %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Room Name</th>
+                    <th>Rows</th>
+                    <th>Columns</th>
+                    <th>Capacity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td style="color:#718096; font-size:0.85rem">{{ loop.index }}</td>
+                <td><span class="room-name">🏫 {{ room.room_name }}</span></td>
+                <td>{{ room.num_rows }} rows</td>
+                <td>{{ room.num_cols }} cols</td>
+                <td><span class="capacity-badge">{{ room.capacity }} seats</span></td>
+                <td>
+                    <form method="POST" style="display:inline"
+                          onsubmit="return confirm('Delete {{ room.room_name }}? This cannot be undone!')">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="room_id" value="{{ room.room_id }}">
+                        <button type="submit" class="btn-danger">🗑 Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🏫</div>
+            <p>No rooms added yet.<br>Add your first room using the form above!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

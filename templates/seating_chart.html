@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <h1><title style="font-size:30px;">Seating Chart - Seating Arrangement</title></h1>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
+        .navbar { background:linear-gradient(135deg,#1a365d,#2b6cb0); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; box-shadow:0 2px 12px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+        .brand { color:white; font-size:1.1rem; font-weight:700; }
+        .navbar nav { display:flex; align-items:center; gap:4px; }
+        .navbar nav a { color:rgba(255,255,255,0.8); text-decoration:none; padding:7px 13px; border-radius:6px; font-size:0.85rem; transition:all 0.2s; }
+        .navbar nav a:hover { background:rgba(255,255,255,0.15); color:white; }
+        .navbar nav a.active { background:rgba(255,255,255,0.22); color:white; font-weight:600; }
+        .navbar nav a.logout:hover { background:#e53e3e; color:white; }
+        .page { max-width:1200px; margin:30px auto; padding:0 20px; }
+        .page-title { font-size:1.5rem; font-weight:700; color:#1a365d; margin-bottom:22px; border-left:4px solid #2b6cb0; padding-left:12px; }
+        .card { background:white; border-radius:12px; padding:20px 24px; box-shadow:0 2px 10px rgba(0,0,0,0.07); margin-bottom:22px; }
+        .card h3 { color:#2b6cb0; font-size:1rem; font-weight:700; margin-bottom:14px; }
+        /* ACTION BUTTONS */
+        .action-row { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .btn { padding:10px 20px; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:#2b6cb0; color:white; }
+        .btn-primary:hover { background:#1a4f8a; }
+        .btn-success { background:#38a169; color:white; }
+        .btn-success:hover { background:#276749; }
+        .btn-secondary { background:#e2e8f0; color:#4a5568; }
+        .btn-secondary:hover { background:#cbd5e0; }
+        /* LEGEND */
+        .legend { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .legend-item { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:600; }
+        /* ROOM CHART */
+        .chart-room { margin-bottom:30px; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+        .room-header { background:#1a365d; color:white; padding:14px 22px; font-size:0.95rem; font-weight:600; display:flex; align-items:center; gap:10px; }
+        .room-header .room-info { font-size:0.82rem; opacity:0.8; margin-left:auto; }
+        .chart-wrapper { background:white; overflow-x:auto; padding:14px; }
+        /* SEAT TABLE */
+        .seat-table { border-collapse:collapse; min-width:100%; }
+        .seat-table th { background:#2b6cb0; color:white; padding:8px 10px; text-align:center; font-size:0.78rem; font-weight:600; min-width:85px; }
+        .seat-table th.row-header { background:#2d3748; min-width:60px; }
+        .seat-table td { border:1px solid #e2e8f0; padding:8px 6px; text-align:center; min-width:85px; background:white; }
+        .seat-table tr:hover td { background:#f7faff; }
+        /* SEAT CONTENT */
+        .seat-pin { font-weight:700; font-size:0.78rem; color:#1a365d; margin-bottom:3px; }
+        .seat-branch { display:inline-block; padding:2px 7px; border-radius:10px; font-size:0.68rem; font-weight:600; }
+        .empty-seat { color:#cbd5e0; font-size:1rem; }
+        /* BRANCH COLORS */
+        .s-cse   { background:#bee3f8; color:#1a365d; }
+        .s-ece   { background:#fefcbf; color:#744210; }
+        .s-eee   { background:#c6f6d5; color:#1c4532; }
+        .s-civil { background:#fed7d7; color:#742a2a; }
+        .s-mech  { background:#e9d8fd; color:#44337a; }
+        .s-other { background:#e2e8f0; color:#4a5568; }
+        /* EMPTY STATE */
+        .empty-state { text-align:center; padding:50px 20px; color:#718096; }
+        .empty-state .empty-icon { font-size:4rem; margin-bottom:14px; }
+        .empty-state p { font-size:0.92rem; margin-bottom:16px; }
+        /* PRINT */
+        @media print {
+            .no-print, .navbar { display:none !important; }
+            .page { margin:0; padding:0; }
+            .chart-room { page-break-after:always; box-shadow:none; margin-bottom:0; }
+            body { background:white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar no-print">
+    <div class="brand">🎓 Seating Arrangement System</div>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/rooms">Rooms</a>
+        <a href="/branches">Branches</a>
+        <a href="/upload_students">Students</a>
+        <a href="/generate">Generate</a>
+        <a href="/view_chart" class="active">View Chart</a>
+        <a href="/logout" class="logout">Logout</a>
+    </nav>
+</div>
+
+<div class="page">
+    <div class="page-title no-print">🪑 Room-wise Seating Chart</div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-row no-print">
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Print All Rooms</button>
+        <a href="/generate" class="btn btn-success">🔄 Regenerate Plan</a>
+        <a href="/dashboard" class="btn btn-secondary">← Dashboard</a>
+    </div>
+
+    <!-- COLOR LEGEND -->
+    {% if seating_data %}
+    <div class="card no-print">
+        <h3>🎨 Branch Color Legend</h3>
+        <div class="legend">
+            <span class="legend-item s-cse">CSE</span>
+            <span class="legend-item s-ece">ECE</span>
+            <span class="legend-item s-eee">EEE</span>
+            <span class="legend-item s-civil">CIVIL</span>
+            <span class="legend-item s-mech">MECH</span>
+            <span class="legend-item s-other">OTHER</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SEATING CHARTS -->
+    {% if not seating_data %}
+    <div class="card empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No seating plan generated yet!</p>
+        <a href="/generate" class="btn btn-success">🚀 Generate Now →</a>
+    </div>
+    {% endif %}
+
+    {% for room_id, data in seating_data.items() %}
+    {% set room = data.room %}
+    {% set grid = data.grid %}
+    <div class="chart-room">
+        <div class="room-header">
+            🏫 {{ room.room_name }}
+            <span class="room-info">
+                {{ room.num_rows }} Rows × {{ room.num_cols }} Columns &nbsp;|&nbsp; Capacity: {{ room.capacity }} seats
+            </span>
+        </div>
+        <div class="chart-wrapper">
+            <table class="seat-table">
+                <thead>
+                    <tr>
+                        <th class="row-header">Row / Col</th>
+                        {% for col in range(1, room.num_cols + 1) %}
+                        <th>Col {{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in range(1, room.num_rows + 1) %}
+                <tr>
+                    <th class="row-header">Row {{ row }}</th>
+                    {% for col in range(1, room.num_cols + 1) %}
+                    <td>
+                        {% if (row, col) in grid %}
+                            {% set seat = grid[(row, col)] %}
+                            {% set br = seat.branch_name %}
+                            <div class="seat-pin">{{ seat.pin_number }}</div>
+                            <span class="seat-branch s-{{ br|lower if br in ['CSE','ECE','EEE','CIVIL','MECH'] else 'other' }}">
+                                {{ br }}
+                            </span>
+                        {% else %}
+                            <span class="empty-seat">—</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+</body>
+</html>

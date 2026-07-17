@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Seating Arrangement</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #e8eef7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ---- MAIN CARD ---- */
+        .card {
+            display: flex;
+            width: 900px;
+            min-height: 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        /* ---- LEFT SIDE — Blue with logo ---- */
+        .left {
+            width: 45%;
+            background: #1e4db7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .college-logo {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255,255,255,0.3);
+            margin-bottom: 24px;
+            background: white;
+            /* Fallback if no image — shows initials */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .college-logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .college-name {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .college-sub {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        /* ---- RIGHT SIDE — White login form ---- */
+        .right {
+            width: 55%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 50px;
+        }
+
+        /* TABS for Create User and Forgot Password */
+        .page-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e4db7;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        /* ALERT */
+        .alert {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .alert-error   { background:#fed7d7; color:#c53030; border-left:3px solid #e53e3e; }
+        .alert-success { background:#c6f6d5; color:#276749; border-left:3px solid #38a169; }
+
+        /* FORM FIELDS */
+        .form-group { width: 100%; margin-bottom: 16px; }
+        input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #2d3748;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        input:focus {
+            outline: none;
+            border-color: #1e4db7;
+            box-shadow: 0 0 0 3px rgba(30,77,183,0.1);
+        }
+        input::placeholder { color: #a0aec0; }
+
+        .pw-wrap { position: relative; }
+        .pw-wrap input { padding-right: 44px; }
+        .eye {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            cursor: pointer; font-size: 16px;
+            color: #a0aec0; padding: 0;
+        }
+
+        /* FORGOT PASSWORD LINK */
+        .forgot-link {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 18px;
+        }
+        .forgot-link button {
+            background: none; border: none;
+            color: #1e4db7; font-size: 13px;
+            cursor: pointer; text-decoration: none;
+            font-family: inherit; padding: 0;
+        }
+        .forgot-link button:hover { text-decoration: underline; }
+
+        /* LOGIN BUTTON */
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: #1e4db7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.3px;
+            margin-bottom: 18px;
+        }
+        .btn-login:hover { background: #1a3d9a; }
+
+        .btn-green {
+            width: 100%;
+            padding: 13px;
+            background: #276749;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 16px;
+        }
+        .btn-green:hover { background: #38a169; }
+
+        .btn-orange {
+            width: 100%;
+            padding: 13px;
+            background: #c05621;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 16px;
+        }
+        .btn-orange:hover { background: #dd6b20; }
+
+        /* CREATE ACCOUNT LINK */
+        .create-row {
+            text-align: center;
+            font-size: 13px;
+            color: #718096;
+            width: 100%;
+        }
+        .create-row button {
+            background: none; border: none;
+            color: #1e4db7; font-size: 13px;
+            cursor: pointer; font-weight: 600;
+            font-family: inherit; padding: 0;
+            text-decoration: none;
+        }
+        .create-row button:hover { text-decoration: underline; }
+
+        /* BACK LINK */
+        .back-link {
+            text-align: center;
+            margin-top: 14px;
+            width: 100%;
+        }
+        .back-link button {
+            background: none; border: none;
+            color: #718096; font-size: 13px;
+            cursor: pointer; font-family: inherit;
+            padding: 0;
+        }
+        .back-link button:hover { color: #1e4db7; }
+
+        /* PASSWORD STRENGTH */
+        .str-bar { height:4px; border-radius:2px; background:#e2e8f0; margin-top:6px; overflow:hidden; }
+        .str-fill { height:100%; border-radius:2px; transition:all 0.3s; width:0%; }
+        .str-txt { font-size:11px; margin-top:2px; }
+        .match-txt { font-size:11px; margin-top:3px; }
+
+        /* SELECT */
+        select {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #2d3748;
+            background: white;
+            cursor: pointer;
+        }
+        select:focus { outline:none; border-color:#1e4db7; }
+
+        /* NOTE */
+        .note {
+            width: 100%;
+            background: #ebf4ff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #1e4db7;
+            margin-bottom: 14px;
+        }
+        .note.green { background:#f0fff4; color:#276749; }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 650px) {
+            .card { flex-direction: column; width: 100%; }
+            .left  { width: 100%; padding: 30px 20px; }
+            .right { width: 100%; padding: 30px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- ============ LEFT SIDE ============ -->
+    <div class="left">
+        <!-- College Logo -->
+        <div class="college-logo">
+             <img src="{{ url_for('static', filename='logo.jpg') }}" alt="College Logo"> 
+        </div>
+        <div class="college-name">
+            Government Polytechnic<br>Proddatur
+        </div>
+        <div class="college-sub">Automatic Seating Arrangement System</div>
+    </div>
+
+    <!-- ============ RIGHT SIDE ============ -->
+    <div class="right">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {% if category=='success' %}✅{% else %}❌{% endif %} {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- ======== PANEL 1: LOGIN ======== -->
+        <div id="panel-login" style="width:100%">
+            <div class="page-title">Login</div>
+
+            <form method="POST" action="/" style="width:100%">
+                <div class="form-group">
+                    <input type="text" name="username"
+                           placeholder="Username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <div class="pw-wrap">
+                        <input type="password" name="password"
+                               id="lp" placeholder="Password" required>
+                        <button type="button" class="eye" onclick="togPw('lp',this)">👁</button>
+                    </div>
+                </div>
+
+                <div class="forgot-link">
+                    <button type="button" onclick="showPanel('forgot')">
+                        Forgot Password?
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+
+            <div class="create-row">
+                Don't have an account?
+                <button onclick="showPanel('register')">Create New Account</button>
+            </div>
+        </div>
+
+        <!-- ======== PANEL 2: CREATE USER ======== -->
+        <div id="panel-register" style="display:none; width:100%">
+            <div class="page-title">Create Account</div>
+
+            <form method="POST" action="/register" style="width:100%">
+                <div class="form-group">
+                    <input type="text" name="full_name" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="new_username"
+                           placeholder="Username (min 3 characters)" required
+                           oninput="chkUser(this.value)">
+                    <div class="match-txt" id="uc"></div>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email"
+                           placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <div class="pw-wrap">
+                        <input type="password" name="new_password" id="rp"
+                               placeholder="Password (min 6 characters)" required
+                               oninput="chkStr(this.value)">
+                        <button type="button" class="eye" onclick="togPw('rp',this)">👁</button>
+                    </div>
+                    <div class="str-bar"><div class="str-fill" id="sf"></div></div>
+                    <div class="str-txt" id="st"></div>
+                </div>
+                <div class="form-group">
+                    <div class="pw-wrap">
+                        <input type="password" name="confirm_password" id="cp"
+                               placeholder="Confirm Password" required
+                               oninput="chkMatch()">
+                        <button type="button" class="eye" onclick="togPw('cp',this)">👁</button>
+                    </div>
+                    <div class="match-txt" id="mt"></div>
+                </div>
+                <div class="form-group">
+                    <select name="role">
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-green">➕ Create Account</button>
+            </form>
+
+            <div class="back-link">
+                <button onclick="showPanel('login')">← Back to Login</button>
+            </div>
+        </div>
+
+        <!-- ======== PANEL 3: FORGOT PASSWORD ======== -->
+        <div id="panel-forgot" style="display:none; width:100%">
+
+            {% if not show_reset %}
+            <div class="page-title">Forgot Password</div>
+            <div class="note">Enter your username and registered email to reset password.</div>
+            <form method="POST" action="/forgot_password" style="width:100%">
+                <div class="form-group">
+                    <input type="text" name="forgot_username"
+                           placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="forgot_email"
+                           placeholder="Registered Email" required>
+                </div>
+                <button type="submit" class="btn-orange"> Verify Identity</button>
+            </form>
+            {% endif %}
+
+            {% if show_reset %}
+            <div class="page-title">Reset Password</div>
+            <form method="POST" action="/reset_password" style="width:100%">
+                <div class="form-group">
+                    <div class="pw-wrap">
+                        <input type="password" name="new_password" id="np"
+                               placeholder="New Password (min 6 chars)" required
+                               oninput="chkStr2(this.value)">
+                        <button type="button" class="eye" onclick="togPw('np',this)">👁</button>
+                    </div>
+                    <div class="str-bar"><div class="str-fill" id="sf2"></div></div>
+                </div>
+                <div class="form-group">
+                    <div class="pw-wrap">
+                        <input type="password" name="confirm_password" id="cnp"
+                               placeholder="Confirm New Password" required>
+                        <button type="button" class="eye" onclick="togPw('cnp',this)">👁</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-green">✅ Reset Password</button>
+            </form>
+            {% endif %}
+
+            <div class="back-link">
+                <button onclick="showPanel('login')">← Back to Login</button>
+            </div>
+        </div>
+
+    </div><!-- end .right -->
+</div><!-- end .card -->
+
+<script>
+/* Show/hide panels */
+function showPanel(name) {
+    ['login','register','forgot'].forEach(p => {
+        document.getElementById('panel-'+p).style.display = p===name ? 'block':'none';
+    });
+}
+
+/* Show/hide password */
+function togPw(id, btn) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type==='password' ? 'text':'password';
+    btn.textContent = inp.type==='password' ? '👁':'🙈';
+}
+
+/* Password strength */
+function chkStr(val) {
+    const fill = document.getElementById('sf');
+    const txt  = document.getElementById('st');
+    let score = 0;
+    if(val.length>=6) score++;
+    if(val.length>=10) score++;
+    if(/[A-Z]/.test(val)) score++;
+    if(/[0-9]/.test(val)) score++;
+    if(/[^A-Za-z0-9]/.test(val)) score++;
+    const lvls=[
+        {w:'0%',c:'#e2e8f0',l:''},
+        {w:'25%',c:'#e53e3e',l:'Weak'},
+        {w:'50%',c:'#f6ad55',l:'Fair'},
+        {w:'75%',c:'#68d391',l:'Good'},
+        {w:'100%',c:'#38a169',l:'Strong 💪'},
+    ];
+    const lv=lvls[Math.min(score,4)];
+    fill.style.width=lv.w; fill.style.background=lv.c;
+    txt.textContent=lv.l; txt.style.color=lv.c;
+}
+
+function chkStr2(val) {
+    const fill=document.getElementById('sf2');
+    let score=0;
+    if(val.length>=6) score++;
+    if(val.length>=10) score++;
+    if(/[A-Z]/.test(val)) score++;
+    if(/[0-9]/.test(val)) score++;
+    const lvls=[
+        {w:'0%',c:'#e2e8f0'},
+        {w:'25%',c:'#e53e3e'},
+        {w:'50%',c:'#f6ad55'},
+        {w:'75%',c:'#68d391'},
+        {w:'100%',c:'#38a169'},
+    ];
+    const lv=lvls[Math.min(score,4)];
+    fill.style.width=lv.w; fill.style.background=lv.c;
+}
+
+/* Password match */
+function chkMatch() {
+    const p1=document.getElementById('rp').value;
+    const p2=document.getElementById('cp').value;
+    const el=document.getElementById('mt');
+    if(!p2){el.textContent='';return;}
+    if(p1===p2){el.textContent='✅ Passwords match!';el.style.color='#38a169';}
+    else{el.textContent='❌ Passwords do not match';el.style.color='#e53e3e';}
+}
+
+/* Username check */
+function chkUser(val) {
+    const el=document.getElementById('uc');
+    if(!val){el.textContent='';return;}
+    if(val.length<3){el.textContent='⚠️ Min 3 characters';el.style.color='#e53e3e';}
+    else if(/^[a-zA-Z0-9_]+$/.test(val)){el.textContent='✅ Looks good!';el.style.color='#38a169';}
+    else{el.textContent='⚠️ Only letters, numbers, underscore';el.style.color='#e53e3e';}
+}
+
+/* Auto switch panel from Flask */
+{% if active_tab == 'register' %}showPanel('register');{% endif %}
+{% if active_tab == 'forgot' %}showPanel('forgot');{% endif %}
+{% if show_reset %}showPanel('forgot');{% endif %}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Seating Arrangement</title>
+    <style>
+        /* ============================================
+           DASHBOARD PAGE - Complete CSS
+           ============================================ */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f4f8;
+            color: #2d3748;
+            min-height: 100vh;
+        }
+
+        /* ---- NAVBAR ---- */
+        .navbar {
+            background: linear-gradient(135deg, #1a365d, #2b6cb0);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .brand {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar nav { display: flex; align-items: center; gap: 4px; }
+        .navbar nav a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 7px 13px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .navbar nav a:hover { background: rgba(255,255,255,0.15); color: white; }
+        .navbar nav a.active { background: rgba(255,255,255,0.22); color: white; font-weight: 600; }
+        .navbar nav a.logout {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            margin-left: 8px;
+        }
+        .navbar nav a.logout:hover { background: #e53e3e; color: white; }
+
+        /* ---- PAGE ---- */
+        .page { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+
+        /* ---- ALERT ---- */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 16px auto;
+            max-width: 1100px;
+            margin-left: 20px;
+            margin-right: 20px;
+            font-size: 0.9rem;
+        }
+        .alert-success { background: #c6f6d5; color: #276749; border-left: 4px solid #38a169; }
+        .alert-error   { background: #fed7d7; color: #c53030; border-left: 4px solid #e53e3e; }
+
+        /* ---- WELCOME BANNER ---- */
+        .welcome-banner {
+            background: linear-gradient(135deg, #1a365d, #2b6cb0);
+            border-radius: 14px;
+            padding: 28px 30px;
+            color: white;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .welcome-text h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+        .welcome-text p  { font-size: 0.9rem; opacity: 0.85; }
+        .welcome-icon { font-size: 4rem; opacity: 0.9; }
+
+        /* ---- STATS GRID ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border-top: 4px solid #2b6cb0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: default;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .stat-card:nth-child(1) { border-top-color: #2b6cb0; }
+        .stat-card:nth-child(2) { border-top-color: #38a169; }
+        .stat-card:nth-child(3) { border-top-color: #d69e2e; }
+        .stat-card:nth-child(4) { border-top-color: #e53e3e; }
+        .stat-icon { font-size: 2.2rem; margin-bottom: 10px; }
+        .stat-num  {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #1a365d;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .stat-lbl {
+            font-size: 0.8rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* ---- TWO COL GRID ---- */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* ---- CARDS ---- */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            margin-bottom: 22px;
+        }
+        .card h3 {
+            color: #1a365d;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ---- STEPS TABLE ---- */
+        .steps-table { width: 100%; border-collapse: collapse; }
+        .steps-table th {
+            background: #ebf4ff;
+            color: #1a365d;
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .steps-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f4f8;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        .steps-table tr:last-child td { border-bottom: none; }
+        .steps-table tr:hover td { background: #f7faff; }
+        .step-num {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #2b6cb0;
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-cell { display: flex; align-items: center; gap: 10px; }
+        .go-btn {
+            background: #ebf4ff;
+            color: #2b6cb0;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .go-btn:hover { background: #2b6cb0; color: white; }
+
+        /* ---- STATUS LIST ---- */
+        .status-list { list-style: none; }
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f4f8;
+            font-size: 0.9rem;
+        }
+        .status-item:last-child { border-bottom: none; }
+        .status-left { display: flex; align-items: center; gap: 10px; color: #2d3748; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-green  { background: #c6f6d5; color: #276749; }
+        .badge-red    { background: #fed7d7; color: #c53030; }
+        .badge-yellow { background: #fefcbf; color: #744210; }
+
+        /* ---- INFO CARD ---- */
+        .info-card {
+            background: linear-gradient(135deg, #ebf4ff, #f0fff4);
+            border: 1px solid #bee3f8;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 22px;
+        }
+        .info-card h3 { color: #1a365d; margin-bottom: 10px; font-size: 0.95rem; }
+        .info-card p  { color: #4a5568; font-size: 0.88rem; line-height: 1.7; }
+
+        /* ---- ALGORITHM BOX ---- */
+        .algo-steps { display: flex; flex-direction: column; gap: 8px; }
+        .algo-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 14px;
+            background: #f7faff;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: #2d3748;
+            border-left: 3px solid #2b6cb0;
+        }
+        .algo-step span { color: #2b6cb0; font-weight: 700; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<div class="navbar">
+    <div class="brand">🎓 Seating Arrangement System</div>
+    <nav>
+        <a href="/dashboard" class="active">Dashboard</a>
+        <a href="/rooms">Rooms</a>
+        <a href="/branches">Branches</a>
+        <a href="/upload_students">Students</a>
+        <a href="/generate">Generate</a>
+        <a href="/view_chart">View Chart</a>
+        <a href="/logout" class="logout">Logout</a>
+    </nav>
+</div>
+
+<!-- ============ FLASH MESSAGES ============ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {% if category == 'success' %}✅{% else %}❌{% endif %}
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<!-- ============ PAGE ============ -->
+<div class="page">
+
+    <!-- WELCOME BANNER -->
+    <div class="welcome-banner">
+        <div class="welcome-text">
+            <h1>👋 Welcome, {{ session.username }}!</h1>
+            <p>Automatic Seating Arrangement System — Manage exam seating plans easily</p>
+        </div>
+        <div class="welcome-icon">🎓</div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🏫</div>
+            <div class="stat-num">{{ room_count }}</div>
+            <div class="stat-lbl">Rooms Added</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-num">{{ branch_count }}</div>
+            <div class="stat-lbl">Branches</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-num">{{ student_count }}</div>
+            <div class="stat-lbl">Students</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🪑</div>
+            <div class="stat-num">{{ allotment_count }}</div>
+            <div class="stat-lbl">Seats Allotted</div>
+        </div>
+    </div>
+
+    <!-- TWO COLUMN -->
+    <div class="two-col">
+
+        <!-- QUICK GUIDE -->
+        <div class="card">
+            <h3>📋 Quick Guide — Follow These Steps</h3>
+            <table class="steps-table">
+                <thead>
+                    <tr><th>Step</th><th>Action</th><th>Go To</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div class="step-cell"><div class="step-num">1</div></div></td>
+                        <td>Add exam rooms with rows and columns</td>
+                        <td><a href="/rooms" class="go-btn">Rooms →</a></td>
+                    </tr>
+                    <tr>
+                        <td><div class="step-cell"><div class="step-num">2</div></div></td>
+                        <td>Add branches (CSE, ECE, EEE, CIVIL, MECH)</td>
+                        <td><a href="/branches" class="go-btn">Branches →</a></td>
+                    </tr>
+                    <tr>
+                        <td><div class="step-cell"><div class="step-num">3</div></div></td>
+                        <td>Upload student PIN numbers per branch</td>
+                        <td><a href="/upload_students" class="go-btn">Students →</a></td>
+                    </tr>
+                    <tr>
+                        <td><div class="step-cell"><div class="step-num">4</div></div></td>
+                        <td>Generate seating plan automatically</td>
+                        <td><a href="/generate" class="go-btn">Generate →</a></td>
+                    </tr>
+                    <tr>
+                        <td><div class="step-cell"><div class="step-num">5</div></div></td>
+                        <td>View and print room-wise seating chart</td>
+                        <td><a href="/view_chart" class="go-btn">View Chart →</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- STATUS CHECK -->
+        <div class="card">
+            <h3>✅ System Status</h3>
+            <ul class="status-list">
+                <li class="status-item">
+                    <div class="status-left">🏫 Rooms</div>
+                    {% if room_count > 0 %}
+                        <span class="badge badge-green">{{ room_count }} Added ✅</span>
+                    {% else %}
+                        <span class="badge badge-red">Not added ❌</span>
+                    {% endif %}
+                </li>
+                <li class="status-item">
+                    <div class="status-left">📚 Branches</div>
+                    {% if branch_count > 0 %}
+                        <span class="badge badge-green">{{ branch_count }} Added ✅</span>
+                    {% else %}
+                        <span class="badge badge-red">Not added ❌</span>
+                    {% endif %}
+                </li>
+                <li class="status-item">
+                    <div class="status-left">👥 Students</div>
+                    {% if student_count > 0 %}
+                        <span class="badge badge-green">{{ student_count }} Uploaded ✅</span>
+                    {% else %}
+                        <span class="badge badge-red">Not uploaded ❌</span>
+                    {% endif %}
+                </li>
+                <li class="status-item">
+                    <div class="status-left">🪑 Seating Plan</div>
+                    {% if allotment_count > 0 %}
+                        <span class="badge badge-green">{{ allotment_count }} Seats ✅</span>
+                    {% else %}
+                        <span class="badge badge-yellow">Not generated ⏳</span>
+                    {% endif %}
+                </li>
+                <li class="status-item">
+                    <div class="status-left">🗄️ Database</div>
+                    <span class="badge badge-green">Connected ✅</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- HOW ALGORITHM WORKS -->
+    <div class="card">
+        <h3>🧠 How the Seating Algorithm Works</h3>
+        <div class="algo-steps">
+            <div class="algo-step"><span>1</span>Branches are auto-split into 2 groups — Group A goes to odd columns, Group B goes to even columns</div>
+            <div class="algo-step"><span>2</span>Students from each group are lined up branch by branch in order</div>
+            <div class="algo-step"><span>3</span>Seats are filled room by room, row by row, column by column</div>
+            <div class="algo-step"><span>4</span>Odd columns → Group A students &nbsp;|&nbsp; Even columns → Group B students</div>
+            <div class="algo-step"><span>5</span>When one branch finishes → next branch in that group continues automatically</div>
+            <div class="algo-step"><span>6</span>No same-branch students sit beside or behind each other! ✅</div>
+        </div>
+    </div>
+
+    <!-- INFO CARD -->
+    <div class="info-card">
+        <h3>💡 About This System</h3>
+        <p>
+            This Automatic Seating Arrangement System generates exam seating plans based on
+            the number of rooms, branches, and student PIN numbers. Teachers can upload student
+            keylists as CSV or Excel files, and the system automatically assigns seats ensuring
+            no two students from the same branch sit adjacent to each other.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

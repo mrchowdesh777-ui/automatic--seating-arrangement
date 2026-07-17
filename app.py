@@ -2,7 +2,7 @@
 # AUTOMATIC SEATING ARRANGEMENT SYSTEM
 # app.py - Updated with Create User + Forgot Password
 # ============================================
-
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import mysql.connector
 import csv
@@ -421,7 +421,6 @@ def view_chart():
     db.close()
     return render_template('seating_chart.html', seating_data=seating_data)
 
-if __name__ == '__main__':
-    app.run(debug=True)
-#if __name__ == '__main__':
-    #app.run(debug=True, host='0.0.0.0', port=80)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

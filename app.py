@@ -21,10 +21,12 @@ def allowed_file(filename):
 
 def get_db():
     db = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="seating_db"
+        host="mysql-12f67626-mrchowdesh777-08c5.g.aivencloud.com",
+        port=14476,
+        user="avnadmin",
+        password="mrchowdesh022043",
+        database="defaultdb",
+        ssl_disabled=False
     )
     return db
 

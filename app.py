@@ -20,13 +20,14 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db():
-    db = mysql.connector.connect(
+    return mysql.connector.connect(
         host="mysql-12f67626-mrchowdesh777-08c5.g.aivencloud.com",
         port=14476,
         user="avnadmin",
         password="mrchowdesh022043",
         database="defaultdb",
-        ssl_disabled=False
+        ssl_disabled=False,
+        ssl_verify_cert=False
     )
     return db
 

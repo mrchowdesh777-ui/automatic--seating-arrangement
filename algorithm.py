@@ -3,6 +3,7 @@
 # ==========================================
 
 def generate_seating(branch_names, students_by_branch, rooms):
+    return []
 
     allotment = []
 

@@ -42,25 +42,29 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        db = get_db()
-        cursor = db.cursor(dictionary=True)
+        try:
+            db = get_db()
+            cursor = db.cursor(dictionary=True)
 
-        # Check username and password in users table
-        cursor.execute(
-            "SELECT * FROM users WHERE username=%s AND password=%s",
-            (username, password)
-        )
-        user = cursor.fetchone()
-        db.close()
+            cursor.execute(
+                "SELECT * FROM users WHERE username=%s AND password=%s",
+                (username, password)
+            )
 
-        if user:
-            session['logged_in'] = True
-            session['username']  = user['username']
-            session['full_name'] = user['full_name']
-            session['role']      = user['role']
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password!', 'error')
+            user = cursor.fetchone()
+            db.close()
+
+            if user:
+                session['logged_in'] = True
+                session['username'] = user['username']
+                session['full_name'] = user['full_name']
+                session['role'] = user['role']
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid username or password!', 'error')
+
+        except Exception as e:
+            return str(e)
 
     return render_template('login.html', active_tab='login')
 

@@ -24,11 +24,12 @@ def get_db():
         host="mysql-12f67626-mrchowdesh777-08c5.g.aivencloud.com",
         port=14476,
         user="avnadmin",
-        password="mrchowdesh022043",
+        password=os.environ.get("DB_PASSWORD"),
         database="defaultdb",
         ssl_disabled=False,
         ssl_verify_cert=False
     )
+    
     return db
 
 

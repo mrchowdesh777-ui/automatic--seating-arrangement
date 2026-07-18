@@ -373,37 +373,88 @@ def upload_file():
 def generate():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
+
     if request.method == 'POST':
-        cursor.execute("DELETE FROM allotment")
-        db.commit()
-        cursor.execute("SELECT * FROM rooms ORDER BY room_id")
-        all_rooms = cursor.fetchall()
-        cursor.execute("SELECT * FROM branches ORDER BY branch_id")
-        all_branches = cursor.fetchall()
-        students_by_branch = {}
-        for branch in all_branches:
-            cursor.execute(
-                "SELECT pin_number, student_id FROM students WHERE branch_id=%s ORDER BY student_id",
-                (branch['branch_id'],))
-            students_by_branch[branch['branch_name']] = cursor.fetchall()
-        branch_names = [b['branch_name'] for b in all_branches]
-        allotment_result = generate_seating(branch_names, students_by_branch, all_rooms)
-        for entry in allotment_result:
-            cursor.execute(
-                "INSERT INTO allotment (room_id, row_no, col_no, student_id, pin_number, branch_name) VALUES (%s,%s,%s,%s,%s,%s)",
-                (entry['room_id'], entry['num_row'], entry['num_col'], entry['student_id'], entry['pin'], entry['branch']))
-        db.commit()
-        flash(f'Seating plan generated! {len(allotment_result)} seats assigned.', 'success')
-        return redirect(url_for('view_chart'))
+        try:
+            print("STEP 1")
+
+            cursor.execute("DELETE FROM allotment")
+            db.commit()
+
+            print("STEP 2")
+
+            cursor.execute("SELECT * FROM rooms ORDER BY room_id")
+            all_rooms = cursor.fetchall()
+
+            cursor.execute("SELECT * FROM branches ORDER BY branch_id")
+            all_branches = cursor.fetchall()
+
+            print("STEP 3")
+
+            students_by_branch = {}
+
+            for branch in all_branches:
+                cursor.execute(
+                    "SELECT pin_number, student_id FROM students WHERE branch_id=%s ORDER BY student_id",
+                    (branch['branch_id'],)
+                )
+                students_by_branch[branch['branch_name']] = cursor.fetchall()
+
+            print("STEP 4")
+
+            branch_names = [b['branch_name'] for b in all_branches]
+
+            allotment_result = generate_seating(branch_names, students_by_branch, all_rooms)
+
+            print("STEP 5")
+            print("Total seats:", len(allotment_result))
+
+            for entry in allotment_result:
+                cursor.execute(
+                    "INSERT INTO allotment (room_id, row_no, col_no, student_id, pin_number, branch_name) VALUES (%s,%s,%s,%s,%s,%s)",
+                    (
+                        entry['room_id'],
+                        entry['num_row'],
+                        entry['num_col'],
+                        entry['student_id'],
+                        entry['pin'],
+                        entry['branch']
+                    )
+                )
+
+            db.commit()
+
+            print("STEP 6")
+
+            flash(f"Seating plan generated! {len(allotment_result)} seats assigned.", "success")
+            return redirect(url_for('view_chart'))
+
+        except Exception as e:
+            print("ERROR:", e)
+            return str(e)
+
     cursor.execute("SELECT * FROM rooms")
     all_rooms = cursor.fetchall()
-    cursor.execute("""SELECT b.*, COUNT(s.student_id) as actual_students
-        FROM branches b LEFT JOIN students s ON b.branch_id=s.branch_id GROUP BY b.branch_id""")
+
+    cursor.execute("""
+        SELECT b.*, COUNT(s.student_id) as actual_students
+        FROM branches b
+        LEFT JOIN students s ON b.branch_id=s.branch_id
+        GROUP BY b.branch_id
+    """)
+
     all_branches = cursor.fetchall()
+
     db.close()
-    return render_template('generate.html', rooms=all_rooms, branches=all_branches)
+
+    return render_template(
+        'generate.html',
+        rooms=all_rooms,
+        branches=all_branches
+    )
 
 # ============================================
 # ROUTE 12: VIEW SEATING CHART

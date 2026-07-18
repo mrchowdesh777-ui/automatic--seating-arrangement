@@ -371,6 +371,7 @@ def upload_file():
 # ============================================
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
+
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
@@ -378,13 +379,15 @@ def generate():
     cursor = db.cursor(dictionary=True)
 
     if request.method == 'POST':
+
         try:
-            print("STEP 1")
+
+            print("========== GENERATE START ==========")
 
             cursor.execute("DELETE FROM allotment")
             db.commit()
 
-            print("STEP 2")
+            print("STEP 1 : Old allotment deleted")
 
             cursor.execute("SELECT * FROM rooms ORDER BY room_id")
             all_rooms = cursor.fetchall()
@@ -392,58 +395,103 @@ def generate():
             cursor.execute("SELECT * FROM branches ORDER BY branch_id")
             all_branches = cursor.fetchall()
 
-            print("STEP 3")
+            print("Rooms =", len(all_rooms))
+            print("Branches =", len(all_branches))
 
             students_by_branch = {}
 
             for branch in all_branches:
+
                 cursor.execute(
-                    "SELECT pin_number, student_id FROM students WHERE branch_id=%s ORDER BY student_id",
-                    (branch['branch_id'],)
+                    """
+                    SELECT student_id, pin_number
+                    FROM students
+                    WHERE branch_id=%s
+                    ORDER BY student_id
+                    """,
+                    (branch["branch_id"],)
                 )
-                students_by_branch[branch['branch_name']] = cursor.fetchall()
 
-            print("STEP 4")
+                students = cursor.fetchall()
 
-            branch_names = [b['branch_name'] for b in all_branches]
+                students_by_branch[branch["branch_name"]] = students
 
-            allotment_result = generate_seating(branch_names, students_by_branch, all_rooms)
+                print(branch["branch_name"], "=", len(students))
 
-            print("STEP 5")
-            print("Total seats:", len(allotment_result))
+            branch_names = [b["branch_name"] for b in all_branches]
+
+            print("STEP 2 : Calling Algorithm")
+
+            allotment_result = generate_seating(
+                branch_names,
+                students_by_branch,
+                all_rooms
+            )
+
+            print("Generated Seats =", len(allotment_result))
 
             for entry in allotment_result:
-                cursor.execute(
-                    "INSERT INTO allotment (room_id, row_no, col_no, student_id, pin_number, branch_name) VALUES (%s,%s,%s,%s,%s,%s)",
-                    (
-                        entry['room_id'],
-                        entry['num_row'],
-                        entry['num_col'],
-                        entry['student_id'],
-                        entry['pin'],
-                        entry['branch']
+
+                try:
+
+                    cursor.execute(
+                        """
+                        INSERT INTO allotment
+                        (room_id,row_no,col_no,student_id,pin_number,branch_name)
+                        VALUES(%s,%s,%s,%s,%s,%s)
+                        """,
+                        (
+                            entry["room_id"],
+                            entry["num_row"],
+                            entry["num_col"],
+                            entry["student_id"],
+                            entry["pin"],
+                            entry["branch"]
+                        )
                     )
-                )
+
+                except Exception as e:
+
+                    print("========== INSERT ERROR ==========")
+                    print(e)
+                    print(entry)
+                    raise
 
             db.commit()
 
-            print("STEP 6")
+            print("STEP 3 : Database Saved")
 
-            flash(f"Seating plan generated! {len(allotment_result)} seats assigned.", "success")
-            return redirect(url_for('view_chart'))
+            flash(
+                f"Seating plan generated! {len(allotment_result)} seats assigned.",
+                "success"
+            )
+
+            return redirect(url_for("view_chart"))
 
         except Exception as e:
-            print("ERROR:", e)
+
+            db.rollback()
+
+            print("========== ERROR ==========")
+            print(e)
+
             return str(e)
+
+        finally:
+
+            db.close()
 
     cursor.execute("SELECT * FROM rooms")
     all_rooms = cursor.fetchall()
 
     cursor.execute("""
-        SELECT b.*, COUNT(s.student_id) as actual_students
+        SELECT b.*,
+               COUNT(s.student_id) AS actual_students
         FROM branches b
-        LEFT JOIN students s ON b.branch_id=s.branch_id
+        LEFT JOIN students s
+        ON b.branch_id=s.branch_id
         GROUP BY b.branch_id
+        ORDER BY b.branch_id
     """)
 
     all_branches = cursor.fetchall()
@@ -451,7 +499,7 @@ def generate():
     db.close()
 
     return render_template(
-        'generate.html',
+        "generate.html",
         rooms=all_rooms,
         branches=all_branches
     )

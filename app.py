@@ -3,6 +3,7 @@
 # app.py - Updated with Create User + Forgot Password
 # ============================================
 import os
+import traceback
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import mysql.connector
 import csv
@@ -472,8 +473,8 @@ def generate():
 
             db.rollback()
 
-            print("========== ERROR ==========")
-            print(e)
+            print("==========  FULL ERROR ==========")
+            traceback.print_exc()
 
             return str(e)
 

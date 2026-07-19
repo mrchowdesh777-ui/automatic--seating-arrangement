@@ -371,6 +371,7 @@ def upload_file():
 # ROUTE 11: GENERATE SEATING PLAN
 # ===========================
 @app.route('/generate', methods=['GET', 'POST'])
+@app.route('/generate', methods=['GET', 'POST'])
 def generate():
 
     if not session.get('logged_in'):
@@ -402,7 +403,7 @@ def generate():
                 SELECT s.student_id, s.pin_number
                 FROM students s
                 JOIN branches b
-                ON s.branch_id = b.branch_id
+                    ON s.branch_id = b.branch_id
                 WHERE b.branch_name = %s
                 ORDER BY s.student_id
             """, (branch,))
@@ -417,21 +418,20 @@ def generate():
         """)
         rooms = cursor.fetchall()
 
-        # Run seating algorithm
+        # Generate seating
         allotment = generate_seating(
             branch_names,
             students_by_branch,
             rooms
         )
 
-        # Save allotment
-        for seat in allotment:
+        print("Total Seats Generated =", len(allotment))
 
-            cursor.execute("""
-                INSERT INTO allotment
-                (room_id, row_no, col_no, student_id, pin_number, branch_name)
-                VALUES (%s,%s,%s,%s,%s,%s)
-            """, (
+        # Prepare bulk insert
+        data = []
+
+        for seat in allotment:
+            data.append((
                 seat["room_id"],
                 seat["num_row"],
                 seat["num_col"],
@@ -440,9 +440,16 @@ def generate():
                 seat["branch"]
             ))
 
+        if data:
+            cursor.executemany("""
+                INSERT INTO allotment
+                (room_id, row_no, col_no, student_id, pin_number, branch_name)
+                VALUES (%s,%s,%s,%s,%s,%s)
+            """, data)
+
         db.commit()
 
-        flash(f"{len(allotment)} seats allotted successfully!", "success")
+        flash(f"{len(data)} seats allotted successfully!", "success")
 
         return redirect(url_for("view_chart"))
 

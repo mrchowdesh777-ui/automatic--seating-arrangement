@@ -370,16 +370,32 @@ def upload_file():
 # ============================================
 # ROUTE 11: GENERATE SEATING PLAN
 # ===========================
-except Exception as e:
+@app.route('/generate', methods=['GET', 'POST'])
+def generate():
 
-    db.rollback()
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
 
-    print("========== FULL ERROR ==========")
-    traceback.print_exc()
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
 
-    flash(str(e), "error")
-    return redirect(url_for("generate"))=================
+    try:
+        # Your generate seating code goes here
 
+        return redirect(url_for("view_chart"))
+
+    except Exception as e:
+        db.rollback()
+
+        print("========== FULL ERROR ==========")
+        traceback.print_exc()
+
+        flash(str(e), "error")
+        return redirect(url_for("generate"))
+
+    finally:
+        cursor.close()
+        db.close()
 
 # ============================================
 # ROUTE 12: VIEW SEATING CHART

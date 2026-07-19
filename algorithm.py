@@ -1,90 +1,135 @@
 # ==========================================
-# SIMPLE & STABLE SEATING ALGORITHM
+# SEATING ALGORITHM - VERTICAL FILLING
 # ==========================================
 
 def generate_seating(branch_names, students_by_branch, rooms):
 
     allotment = []
 
-    # -------------------------------
-    # Split branches into Odd & Even
-    # -------------------------------
-    mid = (len(branch_names) + 1) // 2
+    # Copy all students branch-wise
+    branches = {}
 
-    odd_branches = branch_names[:mid]
-    even_branches = branch_names[mid:]
+    for b in branch_names:
+        branches[b] = students_by_branch.get(b, []).copy()
 
-    odd_students = []
-    even_students = []
+    # Branches having students
+    active = []
 
-    # Collect students
-    for b in odd_branches:
-        for s in students_by_branch.get(b, []):
-            odd_students.append({
-                "student_id": s["student_id"],
-                "pin": s["pin_number"],
-                "branch": b
-            })
+    for b in branch_names:
+        if len(branches[b]) > 0:
+            active.append(b)
 
-    for b in even_branches:
-        for s in students_by_branch.get(b, []):
-            even_students.append({
-                "student_id": s["student_id"],
-                "pin": s["pin_number"],
-                "branch": b
-            })
+    if len(active) == 0:
+        return allotment
 
-    odd_index = 0
-    even_index = 0
+    # Initial Pattern
+    pairA = [0, 1]
+    pairB = [2, 3]
 
-    # -------------------------------
-    # Room by Room
-    # -------------------------------
+    next_branch = 4
+
+    # Room Loop
     for room in rooms:
 
         room_id = room["room_id"]
         rows = room["num_rows"]
         cols = room["num_cols"]
 
-        # Row-wise
-        for r in range(1, rows + 1):
+        # COLUMN FIRST (Vertical Seating)
+        for c in range(1, cols + 1):
 
-            # Odd columns first
-            for c in range(1, cols + 1, 2):
+            for r in range(1, rows + 1):
 
-                if odd_index >= len(odd_students):
+                if r % 2 == 1:
+                    current_pair = pairA
+                else:
+                    current_pair = pairB
+
+                if c % 2 == 1:
+                    pos = 0
+                else:
+                    pos = 1
+
+                index = current_pair[pos]
+
+                if index >= len(active):
                     continue
 
-                s = odd_students[odd_index]
+                branch = active[index]
 
-                allotment.append({
+                # Replace finished branch
+                while len(branches[branch]) == 0:
+
+                    if next_branch >= len(active):
+                        break
+
+                    current_pair[pos] = next_branch
+                    index = current_pair[pos]
+                    branch = active[index]
+                    next_branch += 1
+
+                if len(branches[branch]) == 0:
+                    continue
+
+                # Allocate student
+                student = branches[branch].pop(0)
+
+                seat = {
                     "room_id": room_id,
                     "num_row": r,
                     "num_col": c,
-                    "student_id": s["student_id"],
-                    "pin": s["pin"],
-                    "branch": s["branch"]
-                })
+                    "pin": student["pin_number"],
+                    "student_id": student["student_id"],
+                    "branch": branch
+                }
 
-                odd_index += 1
+                allotment.append(seat)
 
-            # Even columns
-            for c in range(2, cols + 1, 2):
+                # Branch finished?
+                if c % 2 == 1:
+                    pos = 0
+                else:
+                    pos = 1
 
-                if even_index >= len(even_students):
+                while len(branches[branch]) == 0:
+
+                    found = False
+
+                    while next_branch < len(active):
+
+                        if len(branches[active[next_branch]]) > 0:
+
+                            current_pair[pos] = next_branch
+                            index = next_branch
+                            branch = active[index]
+
+                            next_branch += 1
+                            found = True
+                            break
+
+                        next_branch += 1
+
+                    if not found:
+
+                        found = False
+
+                        for i in range(len(active)):
+
+                            if len(branches[active[i]]) > 0:
+
+                                if current_pair[1 - pos] != i:
+
+                                    current_pair[pos] = i
+                                    index = i
+                                    branch = active[i]
+
+                                    found = True
+                                    break
+
+                        if not found:
+                            break
+
+                if len(branches[branch]) == 0:
                     continue
-
-                s = even_students[even_index]
-
-                allotment.append({
-                    "room_id": room_id,
-                    "num_row": r,
-                    "num_col": c,
-                    "student_id": s["student_id"],
-                    "pin": s["pin"],
-                    "branch": s["branch"]
-                })
-
-                even_index += 1
 
     return allotment

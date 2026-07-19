@@ -369,8 +369,17 @@ def upload_file():
 
 # ============================================
 # ROUTE 11: GENERATE SEATING PLAN
-# ============================================
-traceback.print_exc()
+# ===========================
+except Exception as e:
+
+    db.rollback()
+
+    print("========== FULL ERROR ==========")
+    traceback.print_exc()
+
+    flash(str(e), "error")
+    return redirect(url_for("generate"))=================
+
 
 # ============================================
 # ROUTE 12: VIEW SEATING CHART

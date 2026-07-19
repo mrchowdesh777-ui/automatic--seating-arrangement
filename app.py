@@ -380,7 +380,63 @@ def generate():
     cursor = db.cursor(dictionary=True)
 
     try:
-        # Your generate seating code goes here
+        # Clear old allotment
+cursor.execute("DELETE FROM allotment")
+
+# Get branch names
+cursor.execute("SELECT branch_name FROM branches ORDER BY branch_id")
+branch_rows = cursor.fetchall()
+branch_names = [x["branch_name"] for x in branch_rows]
+
+# Get students branch-wise
+students_by_branch = {}
+
+for branch in branch_names:
+    cursor.execute("""
+        SELECT s.student_id, s.pin_number
+        FROM students s
+        JOIN branches b ON s.branch_id = b.branch_id
+        WHERE b.branch_name = %s
+        ORDER BY s.student_id
+    """, (branch,))
+
+    students_by_branch[branch] = cursor.fetchall()
+
+# Get rooms
+cursor.execute("""
+    SELECT room_id, num_rows, num_cols
+    FROM rooms
+    ORDER BY room_id
+""")
+
+rooms = cursor.fetchall()
+
+# Run algorithm
+allotment = generate_seating(
+    branch_names,
+    students_by_branch,
+    rooms
+)
+
+# Save allotment
+for seat in allotment:
+
+    cursor.execute("""
+        INSERT INTO allotment
+        (room_id, row_no, col_no, student_id, pin_number, branch_name)
+        VALUES (%s,%s,%s,%s,%s,%s)
+    """, (
+        seat["room_id"],
+        seat["num_row"],
+        seat["num_col"],
+        seat["student_id"],
+        seat["pin"],
+        seat["branch"]
+    ))
+
+db.commit()
+
+flash(f"{len(allotment)} seats allotted successfully!", "success")
 
         return redirect(url_for("view_chart"))
 

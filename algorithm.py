@@ -1,7 +1,7 @@
 # ==========================================
 # SEATING ALGORITHM - VERTICAL FILLING
 # ==========================================
-
+import random
 def generate_seating(branch_names, students_by_branch, rooms):
 
     allotment = []
@@ -18,7 +18,7 @@ def generate_seating(branch_names, students_by_branch, rooms):
     for b in branch_names:
         if len(branches[b]) > 0:
             active.append(b)
-
+    random.shuffle(active)
     if len(active) == 0:
         return allotment
 
